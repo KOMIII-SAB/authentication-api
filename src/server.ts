@@ -6,6 +6,8 @@ const PORT = env.PORT;
 
 poolPromise
     .then(() => {
+        console.log("Database connected");
+
         app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);
         });
