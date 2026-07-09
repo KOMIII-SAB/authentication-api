@@ -1,6 +1,9 @@
 import { Request, Response} from "express";
-import { findByEmail, createUser } from "../services/user.services";
+import { findByEmail, createUser, updateRefreshToken } from "../services/user.services";
 import { hashPassword } from "../utils/password";
+import { comparePassword } from "../utils/password";
+import { generateToken } from "../utils/jwt";
+import { generateRefreshToken } from "../utils/refreshToken";
 
 export const register = async (req: Request, res: Response) => {
     try {
@@ -56,10 +59,39 @@ export const login = async (req:Request, res: Response) => {
             });
         }
 
-        return res.status(200).json({
-            message: "Login endpoint working"
-        });
+        const user = await findByEmail(email);
 
+        if (!user){
+            return res.status(401).json({
+                message: "Invalid email or password"
+            });
+        }
+        
+        const isPasswordValid = await comparePassword(password, user.passwordHash);
+
+        if (!isPasswordValid){
+            return res.status(401).json({
+                message: "Invalid email or password"
+            });
+        }
+
+        const accessToken = generateToken({id: user.id, role: user.role});
+
+        const refreshToken = generateRefreshToken();
+
+        await updateRefreshToken(user.id!, refreshToken);
+
+        return res.status(200).json({
+            message: "Login succesful",
+            accessToken,
+            refreshToken,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
 
     } catch (error) {
         console.error(error);
@@ -69,3 +101,18 @@ export const login = async (req:Request, res: Response) => {
         });
     }
 };
+
+export const refreshToken = async (req:Request, res:Response) => {
+    try{
+        return res.status(200).json({
+            message: "Refresh token endpoint working"
+        });
+    } catch (error) {
+        console.error(error);
+
+        return res.status(500).json({
+            message: "Server error"
+        })
+    }
+}
+

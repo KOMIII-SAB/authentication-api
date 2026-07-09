@@ -8,6 +8,7 @@ interface envConfig  {
     DB_PASSWORD: string;
     DB_SERVER: string;
     DB_DATABASE: string;
+    JWT_SECRET: string;
 }
 
 export const env: envConfig = {
@@ -15,5 +16,7 @@ export const env: envConfig = {
     DB_USER: process.env.DB_USER || "",
     DB_PASSWORD: process.env.DB_PASSWORD || "",
     DB_SERVER: process.env.DB_SERVER || "",
-    DB_DATABASE: process.env.DB_DATABASE || ""
+    DB_DATABASE: process.env.DB_DATABASE || "",
+    
+    JWT_SECRET: process.env.JWT_SECRET || ""
 };

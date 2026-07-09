@@ -18,12 +18,18 @@ export const findByEmail = async (email: string): Promise<User | null> => {
         return null;
     }
 
-    return result.recordset[0] as User;
+    return {
+        id: result.recordset[0].Id,
+        name: result.recordset[0].Name,
+        email: result.recordset[0].Email,
+        passwordHash: result.recordset[0].PasswordHash,
+        role: result.recordset[0].Role,
+        refreshToken: result.recordset[0].RefreshToken,
+        createdAt: result.recordset[0].CreatedAt
+    };
 };
 
-export const createUser = async(
-    user: User
-): Promise<User> => {
+export const createUser = async(user: User): Promise<User> => {
     const pool = await poolPromise;
 
     const result = await pool
@@ -35,5 +41,24 @@ export const createUser = async(
         .query(`
             INSERT INTO Users (Name, Email, PasswordHash, Role) OUTPUT INSERTED.*
             VALUES (@Name, @Email, @PasswordHash, @Role)`);
-    return result.recordset[0] as User;
-}
+
+    return {
+        id: result.recordset[0].Id,
+        name: result.recordset[0].Name,
+        email: result.recordset[0].Email,
+        passwordHash: result.recordset[0].PasswordHash,
+        role: result.recordset[0].Role,
+        refreshToken: result.recordset[0].RefreshToken,
+        createdAt: result.recordset[0].CreatedAt
+    };
+};
+
+export const updateRefreshToken = async (userId: number, refreshToken: string): Promise<void> => {
+    const pool = await poolPromise;
+
+    await pool
+    .request()
+    .input("Id", sql.Int, userId)
+    .input("RefreshToken", sql.VarChar, refreshToken)
+    .query(`UPDATE Users SET RefreshToken = @RefreshToken WHERE Id = @Id`);
+};
