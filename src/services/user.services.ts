@@ -62,3 +62,28 @@ export const updateRefreshToken = async (userId: number, refreshToken: string): 
     .input("RefreshToken", sql.VarChar, refreshToken)
     .query(`UPDATE Users SET RefreshToken = @RefreshToken WHERE Id = @Id`);
 };
+
+export const findByRefreshToken = async (refreshToken: string): Promise<User | null> => {
+    const pool = await poolPromise;
+
+    const result = await pool
+        .request()
+        .input("RefreshToken", sql.VarChar, refreshToken)
+        .query(`SELECT * FROM Users WHERE RefreshToken = @RefreshToken`);
+
+    if (result.recordset.length === 0){
+        return null;
+    }
+
+    const user = result.recordset[0];
+
+    return {
+        id: user.Id,
+        name: user.Name,
+        email: user.Email,
+        passwordHash: user.PasswordHash,
+        role: user.Role,
+        refreshToken: user.RefreshToken,
+        createdAt: user.CreatedAt
+    };
+};

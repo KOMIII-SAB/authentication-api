@@ -4,7 +4,7 @@ import { env } from "../config/env"
 const JWT_SECRET = env.JWT_SECRET;
 
 export const generateToken = (payload: object): string => {
-    return jwt.sign(payload, JWT_SECRET, {expiresIn: "15"});
+    return jwt.sign(payload, JWT_SECRET, {expiresIn: "15m"});
 };
 
 export const verifyToken = (token: string) => {

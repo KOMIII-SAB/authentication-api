@@ -1,9 +1,10 @@
 import { Request, Response} from "express";
-import { findByEmail, createUser, updateRefreshToken } from "../services/user.services";
+import { findByEmail, createUser, updateRefreshToken, findByRefreshToken } from "../services/user.services";
 import { hashPassword } from "../utils/password";
 import { comparePassword } from "../utils/password";
 import { generateToken } from "../utils/jwt";
 import { generateRefreshToken } from "../utils/refreshToken";
+import { access } from "node:fs";
 
 export const register = async (req: Request, res: Response) => {
     try {
@@ -104,8 +105,29 @@ export const login = async (req:Request, res: Response) => {
 
 export const refreshToken = async (req:Request, res:Response) => {
     try{
+        const { refreshToken } = req.body;
+
+        if (!refreshToken){
+            return res.status(400).json({
+                message: "Refresh token is required"
+            });
+        }
+
+        const user = await findByRefreshToken(refreshToken);
+
+        if (!user){
+            return res.status(401).json({
+                message: "Invalid refresh token"
+            });
+        }
+
+        const accessToken = generateToken({
+            id: user.id,
+            role: user.role
+        });
+
         return res.status(200).json({
-            message: "Refresh token endpoint working"
+            accessToken
         });
     } catch (error) {
         console.error(error);
@@ -115,4 +137,6 @@ export const refreshToken = async (req:Request, res:Response) => {
         })
     }
 }
+
+
 
