@@ -1,13 +1,13 @@
-import { Request, Response} from "express";
+import { Request, Response, NextFunction } from "express";
 import { findByEmail, createUser, updateRefreshToken, findByRefreshToken } from "../services/user.services";
 import { hashPassword } from "../utils/password";
 import { comparePassword } from "../utils/password";
 import { generateToken } from "../utils/jwt";
 import { generateRefreshToken } from "../utils/refreshToken";
 import { access } from "node:fs";
+import { successResponse } from "../utils/response";
 
 export const register = async (req: Request, res: Response) => {
-    try {
         const { name, email, password } = req.body;
 
         if (!name || !email || !password){
@@ -30,28 +30,20 @@ export const register = async (req: Request, res: Response) => {
             name, email, passwordHash, role: "user"
         });
 
-
-        res.status(201).json({
-            message: "User registered succesfully",
-            user: {
+        return successResponse(
+            res,
+            "User registered successfully",
+            {
                 id: newUser.id,
                 name: newUser.name,
                 email: newUser.email,
                 role: newUser.role
-            }
-        });
-
-    } catch (error) {
-        console.error(error);
-
-        res.status(500).json({
-            message: "Server error"
-        });
-    }
+            },
+            201
+        );
 };
 
 export const login = async (req:Request, res: Response) => {
-    try{
         const { email, password } = req.body;
 
         if (!email || !password){
@@ -82,29 +74,23 @@ export const login = async (req:Request, res: Response) => {
 
         await updateRefreshToken(user.id!, refreshToken);
 
-        return res.status(200).json({
-            message: "Login succesful",
-            accessToken,
-            refreshToken,
-            user: {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                role: user.role
+        return successResponse(
+            res,
+            "Login successful",
+            {
+                accessToken,
+                refreshToken,
+                user: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role
+                }
             }
-        });
-
-    } catch (error) {
-        console.error(error);
-
-        res.status(500).json({
-            message: "Server error"
-        });
-    }
+        );
 };
 
 export const refreshToken = async (req:Request, res:Response) => {
-    try{
         const { refreshToken } = req.body;
 
         if (!refreshToken){
@@ -129,13 +115,6 @@ export const refreshToken = async (req:Request, res:Response) => {
         return res.status(200).json({
             accessToken
         });
-    } catch (error) {
-        console.error(error);
-
-        return res.status(500).json({
-            message: "Server error"
-        })
-    }
 }
 
 
