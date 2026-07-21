@@ -1,11 +1,11 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { findByEmail, createUser, updateRefreshToken, findByRefreshToken } from "../services/user.services";
 import { hashPassword } from "../utils/password";
 import { comparePassword } from "../utils/password";
 import { generateToken } from "../utils/jwt";
 import { generateRefreshToken } from "../utils/refreshToken";
-import { access } from "node:fs";
 import { successResponse } from "../utils/response";
+import { clearRefreshToken } from "../services/user.services";
 
 export const register = async (req: Request, res: Response) => {
         const { name, email, password } = req.body;
@@ -107,15 +107,36 @@ export const refreshToken = async (req:Request, res:Response) => {
             });
         }
 
-        const accessToken = generateToken({
+        const newAccessToken = generateToken({
             id: user.id,
             role: user.role
         });
 
-        return res.status(200).json({
-            accessToken
-        });
+        const newRefreshToken = generateRefreshToken();
+
+        await updateRefreshToken(
+            user.id!,
+            newRefreshToken
+        );
+
+        return successResponse(
+            res,
+            "Token refreshed successfully",
+            {
+                accessToken: newAccessToken,
+                refreshToken: newRefreshToken
+            }
+        );
 }
+
+export const logout = async (req: Request, res: Response) => {
+    await clearRefreshToken(req.user!.id);
+
+    return successResponse(
+        res,
+        "Logout successful"
+    );
+};
 
 
 

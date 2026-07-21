@@ -1,9 +1,9 @@
 import sql from "mssql";
-import { poolPromise } from "../config/db";
+import { getPool } from "../config/db";
 import { User } from "../models/users/user.model";
 
 export const findByEmail = async (email: string): Promise<User | null> => {
-    const pool = await poolPromise;
+    const pool = await getPool();
 
     const result = await pool
         .request()
@@ -30,7 +30,7 @@ export const findByEmail = async (email: string): Promise<User | null> => {
 };
 
 export const createUser = async(user: User): Promise<User> => {
-    const pool = await poolPromise;
+    const pool = await getPool();
 
     const result = await pool
         .request()
@@ -54,7 +54,7 @@ export const createUser = async(user: User): Promise<User> => {
 };
 
 export const updateRefreshToken = async (userId: number, refreshToken: string): Promise<void> => {
-    const pool = await poolPromise;
+    const pool = await getPool();
 
     await pool
     .request()
@@ -64,7 +64,7 @@ export const updateRefreshToken = async (userId: number, refreshToken: string): 
 };
 
 export const findByRefreshToken = async (refreshToken: string): Promise<User | null> => {
-    const pool = await poolPromise;
+    const pool = await getPool();
 
     const result = await pool
         .request()
@@ -86,4 +86,17 @@ export const findByRefreshToken = async (refreshToken: string): Promise<User | n
         refreshToken: user.RefreshToken,
         createdAt: user.CreatedAt
     };
+};
+
+export const clearRefreshToken = async (userId: number) => {
+    const pool = await getPool();
+
+    await pool
+        .request()
+        .input("Id", sql.Int, userId)
+        .query(`
+            UPDATE Users
+            SET RefreshToken = NULL
+            WHERE Id = @Id
+        `);
 };

@@ -1,10 +1,10 @@
 import app from "./app";
 import { env } from "./config/env";
-import { poolPromise } from "./config/db";
+import { getPool } from "./config/db";
 
 const PORT = env.PORT;
 
-poolPromise
+getPool()
     .then(() => {
         console.log("Database connected");
 

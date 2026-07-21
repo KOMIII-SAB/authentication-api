@@ -1,25 +1,25 @@
 import sql from "mssql";
-import { env } from "./env"
+import { env } from "./env";
 
-const dbConfig: sql.config ={
+const dbConfig: sql.config = {
     user: env.DB_USER,
     password: env.DB_PASSWORD,
     server: env.DB_SERVER,
     database: env.DB_DATABASE,
-    options:{
+    options: {
         encrypt: false,
-        trustedConnection: false
+        trustServerCertificate: true
     }
 };
 
-export const poolPromise = new sql.ConnectionPool(dbConfig)
-    .connect()
-    .then(pool => {
+let pool: sql.ConnectionPool | null = null;
+
+export const getPool = async (): Promise<sql.ConnectionPool> => {
+    if (!pool) {
+        pool = await new sql.ConnectionPool(dbConfig).connect();
+
         console.log("Database Connected");
-        return pool;
-    })
-    .catch((error => {
-        console.log(dbConfig)
-        console.log("Database Connection Failes", error);
-        throw error;
-    }));
+    }
+
+    return pool;
+};
